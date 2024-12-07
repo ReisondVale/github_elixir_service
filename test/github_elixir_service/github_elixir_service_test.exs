@@ -44,7 +44,7 @@ defmodule GithubElixirService.GithubClientTest do
          }}
     end)
 
-    result = GithubClient.get_issues_and_contributors(@user, @repo)
+    {:ok, result} = GithubClient.get_issues_and_contributors(@user, @repo)
 
     assert %{
              user: @user,
@@ -78,19 +78,8 @@ defmodule GithubElixirService.GithubClientTest do
         {:error, :not_found}
     end)
 
-    Mox.expect(GithubElixirService.MockHttpClient, :get, fn
-      "https://api.github.com/repos/valid_user/valid_repo/contributors", _headers ->
-        {:error, :not_found}
-    end)
-
-    result = GithubClient.get_issues_and_contributors(@user, @repo)
-
-    assert %{
-             user: @user,
-             repository: @repo,
-             issues: {:error, "Failed to get issues"},
-             contributors: {:error, "Failed to get contributors"}
-           } = result
+    {:error, "Failed to get issues and contributors"} =
+      GithubClient.get_issues_and_contributors(@user, @repo)
   end
 
   test "returns an empty list when the repository has no issues" do
@@ -119,7 +108,7 @@ defmodule GithubElixirService.GithubClientTest do
          }}
     end)
 
-    result = GithubClient.get_issues_and_contributors(@user, @repo)
+    {:ok, result} = GithubClient.get_issues_and_contributors(@user, @repo)
 
     assert %{
              user: @user,

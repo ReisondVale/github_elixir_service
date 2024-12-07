@@ -18,24 +18,28 @@ defmodule GithubElixirService.GithubClient do
       which may result in stricter rate limits and access only to public repositories.
 
   ## Returns
-  - A map containing issues and contributors data.
+  - A tuple with :ok and a map containing issues and contributors data.
   """
-  @spec get_issues_and_contributors(String.t(), String.t(), String.t() | nil) :: %{
-          user: String.t(),
-          repository: String.t(),
-          issues: list(),
-          contributors: list()
-        }
+  @spec get_issues_and_contributors(String.t(), String.t(), String.t() | nil) ::
+          {:ok,
+           %{
+             user: String.t(),
+             repository: String.t(),
+             issues: list(),
+             contributors: list()
+           }}
+          | {:error, any()}
   def get_issues_and_contributors(user, repo, token \\ nil) do
     with {:ok, headers} <- build_headers(token),
          {:ok, issues} <- get_issues(user, repo, headers),
          {:ok, contributors} = get_contributors(user, repo, headers) do
-      %{
-        user: user,
-        repository: repo,
-        issues: issues,
-        contributors: contributors
-      }
+      {:ok,
+       %{
+         user: user,
+         repository: repo,
+         issues: issues,
+         contributors: contributors
+       }}
     else
       {:error, reason} ->
         Logger.error("Failed to get issues and contributors from GitHub: #{inspect(reason)}")
@@ -52,16 +56,12 @@ defmodule GithubElixirService.GithubClient do
     url = "#{@api_url}/repos/#{user}/#{repo}/issues"
 
     with {:ok, %HTTPoison.Response{status_code: 200, body: body}} <- HttpClient.get(url, headers),
-         {:ok, decoded_body} <- decode_body(body),
+         {:ok, decoded_body} <- Jason.decode(body),
          issues <- map_issues(decoded_body) do
       {:ok, issues}
     else
-      {:error, :unexpected_format} ->
-        raise "Unexpected response format"
-
       {:error, reason} ->
-        Logger.error("Failed to get issues from GitHub: #{inspect(reason)}")
-        {:error, "Failed to get issues"}
+        {:error, reason}
     end
   end
 
@@ -69,24 +69,12 @@ defmodule GithubElixirService.GithubClient do
     url = "#{@api_url}/repos/#{user}/#{repo}/contributors"
 
     with {:ok, %HTTPoison.Response{status_code: 200, body: body}} <- HttpClient.get(url, headers),
-         {:ok, decoded_body} <- decode_body(body),
+         {:ok, decoded_body} <- Jason.decode(body),
          contributors <- map_contributors(decoded_body) do
       {:ok, contributors}
     else
-      {:error, :unexpected_format} ->
-        raise "Unexpected response format"
-
       {:error, reason} ->
-        Logger.error("Failed to get contributors from GitHub: #{inspect(reason)}")
-        {:error, "Failed to get contributors"}
-    end
-  end
-
-  defp decode_body(body) do
-    case Jason.decode(body) do
-      {:ok, []} -> {:ok, []}
-      {:ok, data} when is_list(data) -> {:ok, data}
-      _ -> {:error, :unexpected_format}
+        {:error, reason}
     end
   end
 
