@@ -8,22 +8,17 @@ defmodule GithubElixirServiceWeb.WebhookController do
 
   use GithubElixirServiceWeb, :controller
 
-  alias GithubElixirService.GithubClient
+  alias GithubElixirService.ObanWorker.WebhookWorker
 
   @spec fetch_data_issues(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def fetch_data_issues(conn, %{"user" => user, "repository" => repo}) do
-    webhook_url = System.get_env("WEBHOOK_URL")
-    payload = GithubClient.get_issues_and_contributors(user, repo)
-
-    send_to_webhook(webhook_url, payload)
+    %{
+      "user" => user,
+      "repository" => repo
+    }
+    |> WebhookWorker.new()
+    |> Oban.insert(schedule_in: 24 * 60 * 60)
 
     json(conn, %{message: "Github data issues is being sent to Webhook.site"})
-  end
-
-  defp send_to_webhook(url, payload) do
-    headers = [{"Content-Type", "application/json"}]
-    body = Jason.encode!(payload)
-
-    HTTPoison.post(url, body, headers)
   end
 end
