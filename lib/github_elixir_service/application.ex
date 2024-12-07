@@ -10,7 +10,8 @@ defmodule GithubElixirService.Application do
     children = [
       GithubElixirServiceWeb.Telemetry,
       GithubElixirService.Repo,
-      {DNSCluster, query: Application.get_env(:github_elixir_service, :dns_cluster_query) || :ignore},
+      {DNSCluster,
+       query: Application.get_env(:github_elixir_service, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: GithubElixirService.PubSub},
       # Start the Finch HTTP client for sending emails
       {Finch, name: GithubElixirService.Finch},

@@ -27,23 +27,26 @@ defmodule GithubElixirService.GithubClient do
           contributors: list()
         }
   def get_issues_and_contributors(user, repo, token \\ nil) do
-    # adicionar um with para caso de erro em algumas das chamadas
-    headers = build_headers(token)
-    issues = get_issues(user, repo, headers)
-    contributors = get_contributors(user, repo, headers)
-
-    %{
-      user: user,
-      repository: repo,
-      issues: issues,
-      contributors: contributors
-    }
+    with {:ok, headers} <- build_headers(token),
+         {:ok, issues} <- get_issues(user, repo, headers),
+         {:ok, contributors} = get_contributors(user, repo, headers) do
+      %{
+        user: user,
+        repository: repo,
+        issues: issues,
+        contributors: contributors
+      }
+    else
+      {:error, reason} ->
+        Logger.error("Failed to get issues and contributors from GitHub: #{inspect(reason)}")
+        {:error, "Failed to get issues and contributors"}
+    end
   end
 
-  defp build_headers(nil), do: [{"Content-Type", "application/json"}]
+  defp build_headers(nil), do: {:ok, [{"Content-Type", "application/json"}]}
 
   defp build_headers(token),
-    do: [{"Content-Type", "application/json"}, {"Authorization", "Bearer #{token}"}]
+    do: {:ok, [{"Content-Type", "application/json"}, {"Authorization", "Bearer #{token}"}]}
 
   defp get_issues(user, repo, headers) do
     url = "#{@api_url}/repos/#{user}/#{repo}/issues"
@@ -51,7 +54,7 @@ defmodule GithubElixirService.GithubClient do
     with {:ok, %HTTPoison.Response{status_code: 200, body: body}} <- HttpClient.get(url, headers),
          {:ok, decoded_body} <- decode_body(body),
          issues <- map_issues(decoded_body) do
-      issues
+      {:ok, issues}
     else
       {:error, :unexpected_format} ->
         raise "Unexpected response format"
@@ -68,7 +71,7 @@ defmodule GithubElixirService.GithubClient do
     with {:ok, %HTTPoison.Response{status_code: 200, body: body}} <- HttpClient.get(url, headers),
          {:ok, decoded_body} <- decode_body(body),
          contributors <- map_contributors(decoded_body) do
-      contributors
+      {:ok, contributors}
     else
       {:error, :unexpected_format} ->
         raise "Unexpected response format"
