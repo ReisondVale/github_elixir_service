@@ -2,8 +2,10 @@ defmodule GithubElixirServiceWeb.WebhookController do
   @moduledoc """
   This controller handles requests related to GitHub webhook integration.
 
-  It processes incoming payloads from GitHub and sends relevant data, such as issues and contributors,
-  to a specified webhook URL.
+  It schedules a job using Oban to fetch data from GitHub (such as issues and contributors)
+
+  The job is scheduled to run 24 hours after the request is received, ensuring asynchronous
+  processing and flexibility in webhook delivery.
   """
 
   use GithubElixirServiceWeb, :controller
