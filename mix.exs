@@ -47,7 +47,8 @@ defmodule GithubElixirService.MixProject do
       {:bandit, "~> 1.5"},
       {:httpoison, "~> 2.0"},
       {:dotenv, "~> 3.1"},
-      {:mox, "~> 1.2"}
+      {:mox, "~> 1.2"},
+      {:oban, "~> 2.18.3"}
     ]
   end
 
