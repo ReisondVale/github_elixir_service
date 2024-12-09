@@ -9,6 +9,10 @@ defmodule GithubElixirServiceWeb.Router do
     pipe_through :api
   end
 
+  scope "/", GithubElixirServiceWeb do
+    post "/fetch_issues", WebhookController, :fetch_data_issues
+  end
+
   # Enable LiveDashboard and Swoosh mailbox preview in development
   if Application.compile_env(:github_elixir_service, :dev_routes) do
     # If you want to use the LiveDashboard in production, you should put
