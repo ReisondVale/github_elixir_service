@@ -31,3 +31,11 @@ config :logger, level: :warning
 
 # Initialize plugs at runtime for faster test compilation
 config :phoenix, :plug_init_mode, :runtime
+
+# Oban configs for test
+config :github_elixir_service, Oban,
+  repo: GithubElixirService.Repo,
+  queues: [default: 10],
+  plugins: false
+
+config :github_elixir_service, :webhook_snooze_time, 60

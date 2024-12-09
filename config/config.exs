@@ -44,6 +44,10 @@ config :github_elixir_service, Oban,
   queues: [default: 10],
   plugins: [Oban.Plugins.Pruner]
 
+config :github_elixir_service,
+  webhook_url: "https://webhook.site/c87776a8-008d-4967-b8b7-9564f35c1658",
+  webhook_snooze_time: 60 * 60 * 24
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"

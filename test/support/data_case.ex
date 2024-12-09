@@ -20,6 +20,8 @@ defmodule GithubElixirService.DataCase do
     quote do
       alias GithubElixirService.Repo
 
+      use Oban.Testing, repo: GithubElixirService.Repo
+
       import Ecto
       import Ecto.Changeset
       import Ecto.Query
