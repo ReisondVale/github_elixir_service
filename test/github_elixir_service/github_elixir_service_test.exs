@@ -74,12 +74,12 @@ defmodule GithubElixirService.GithubClientTest do
 
   test "returns an error when the response is not 200" do
     Mox.expect(GithubElixirService.MockHttpClient, :get, fn
-      "https://api.github.com/repos/valid_user/valid_repo/issues", _headers ->
+      "https://api.github.com/repos/invalid_user/invalid_repo/issues", _headers ->
         {:error, :not_found}
     end)
 
     {:error, "Failed to get issues and contributors"} =
-      GithubClient.get_issues_and_contributors(@user, @repo)
+      GithubClient.get_issues_and_contributors("invalid_user", "invalid_repo")
   end
 
   test "returns an empty list when the repository has no issues" do
